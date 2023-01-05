@@ -42,17 +42,17 @@ function generateUniqueId(): string {
 
 function chatStripe(isAi: boolean, value: string, uniqueId: string): string {
   return `
-        <div class="wrapper ${isAi && "ai"}">
-          <div class="chat">
-            <div class="profile">
-              <img 
-                src=${isAi ? bot : user} 
-                alt="${isAi ? "bot" : "user"}" 
-              />
-            </div>
-            <div class="message" id=${uniqueId}>${value}</div>
-          </div>
+    <div class="wrapper ${isAi && "ai"}">
+      <div class="chat">
+        <div class="profile">
+          <img 
+            src=${isAi ? bot : user} 
+            alt="${isAi ? "bot" : "user"}" 
+          />
         </div>
+        <div class="message" id=${uniqueId}>${value}</div>
+      </div>
+    </div>
     `;
 }
 
@@ -79,7 +79,7 @@ async function handleSubmit(e: Event): Promise<void> {
   loader(messageDiv);
 
   // fetch data
-  const response = await fetch("http://localhost:5000", {
+  const response = await fetch("https://open-ai-chat-ifvq.onrender.com", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
