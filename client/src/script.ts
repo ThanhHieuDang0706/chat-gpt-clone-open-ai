@@ -6,7 +6,7 @@ const chatContainer: HTMLDivElement = document.querySelector(
   "#chat_container"
 ) as HTMLDivElement;
 
-let loadInterval;
+let loadInterval: number;
 
 function loader(element: HTMLElement): void {
   element.textContent = "";
@@ -29,7 +29,7 @@ function typeText(element: HTMLElement, text: string): void {
     } else {
       clearInterval(interval);
     }
-  }, 20);
+  }, 5);
 }
 
 function generateUniqueId(): string {
@@ -42,17 +42,18 @@ function generateUniqueId(): string {
 
 function chatStripe(isAi: boolean, value: string, uniqueId: string): string {
   return `
-    <div class="wrapper ${isAi && "ai"}" >
-      <div class="chat">
-        <div className="profile">
-          <img src="${isAi ? bot : user}" alt="${isAi ? bot : user}"/>
+        <div class="wrapper ${isAi && "ai"}">
+          <div class="chat">
+            <div class="profile">
+              <img 
+                src=${isAi ? bot : user} 
+                alt="${isAi ? "bot" : "user"}" 
+              />
+            </div>
+            <div class="message" id=${uniqueId}>${value}</div>
+          </div>
         </div>
-        <div id=${uniqueId} class="message">
-          ${value}
-        </div>
-      </div>
-    </div>
-  `;
+    `;
 }
 
 async function handleSubmit(e: Event): Promise<void> {
@@ -70,12 +71,34 @@ async function handleSubmit(e: Event): Promise<void> {
 
   // bot's message
   const uniqueBotId = generateUniqueId();
-  chatContainer.innerHTML += chatStripe(true, " ", uniqueBotId);
+  chatContainer.innerHTML += chatStripe(true, "", uniqueBotId);
 
   chatContainer.scrollTop = chatContainer.scrollHeight;
 
   const messageDiv = document.getElementById(uniqueBotId) as HTMLElement;
   loader(messageDiv);
+
+  // fetch data
+  const response = await fetch("http://localhost:5000", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ prompt: data.get("prompt") as string }),
+  });
+
+  clearInterval(loadInterval);
+  messageDiv.innerHTML = "";
+
+  if (response.ok) {
+    const data: { bot: string } = await response.json();
+    const parsedData = data.bot.trim();
+    typeText(messageDiv, parsedData);
+  } else {
+    const err = await response.text();
+    messageDiv.innerHTML = "Something went wrong!!";
+    alert(err);
+  }
 }
 
 // add event listener
